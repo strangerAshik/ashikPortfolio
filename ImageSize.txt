@@ -1,0 +1,6 @@
+Image Size Instruction:
+Category 			Width			Height
+Home Slider: 		640px			240px
+product				600px			400px
+About us			215px 			215px
+Gallery				maintain equal size
