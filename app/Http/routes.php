@@ -82,5 +82,9 @@ Route::group(['prefix' => 'admin','middleware' => 'web'], function () {
 Route::group(['middleware' => ['web']], function () 
 {
 Route::get('/','frontController@home');
+Route::get('blog','frontController@blog');
+Route::get('blog/single/{id}','frontController@single');
+Route::get('blog/search','frontController@search');
+Route::get('category/{name}','frontController@category');
 Route::post('sendEmail','frontController@sendEmail');
 });

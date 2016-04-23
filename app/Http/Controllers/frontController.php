@@ -13,11 +13,66 @@ class frontController extends Controller
 
     public  function home(){
     	//contact info
-
+    	$welcome=DB::table('contents')->where('unique_key','welcome')->orderBy('id','desc')->first();
+    	$profSkill=DB::table('contents')->where('unique_key','professional_capabilitie')->orderBy('id','desc')->first();
+    	$tecSkill=DB::table('contents')->where('unique_key','technical_skills')->orderBy('id','desc')->first();
+    	$works=DB::table('contents')->where('category_id','4')->get();
     	return view('front.welcome')
-    			
-    	;
+    			->with('welcome',$welcome)
+    			->with('profSkill',$profSkill)
+    			->with('tecSkill',$tecSkill)   			
+    			->with('works',$works)   			
+    			;
     }
+
+    public function blog(){
+      $posts=DB::table('contents')
+          ->leftJoin('documents','documents.mother_id','=','contents.id')
+          ->orderBy('contents.id','desc')
+          ->select('contents.*','documents.calling_id')
+          ->where('contents.category_id','5')
+          ->paginate(10);
+      return view('front.blog',['posts'=>$posts]);
+    }
+    public function search(Request $request){
+       $key=$request->input('search');
+      $posts=DB::table('contents')
+          ->leftJoin('documents','documents.mother_id','=','contents.id')
+          ->orderBy('contents.id','desc')
+          ->select('contents.*','documents.calling_id')
+          ->where(function ($query) {$query->where('contents.category_id','5');})
+          ->where(function ($query) use ($key) { 
+                  $query->where('contents.title','LIKE','%'.$key.'%')
+                        ->orWhere('contents.content','LIKE','%'.$key.'%')
+                        ->orWhere('contents.unique_key','LIKE','%'.$key.'%');
+              })
+           
+          // ->where('contents.category_id','5')
+          // ->Where('contents.title','LIKE','%'.$key.'%')
+          // ->orWhere('contents.content','LIKE','%'.$key.'%')
+          ->paginate(10);
+      return view('front.blog',['posts'=>$posts]);
+    }
+    public function category($cat){
+      
+      $posts=DB::table('contents')
+          ->leftJoin('documents','documents.mother_id','=','contents.id')
+          ->orderBy('contents.id','desc')
+          ->select('contents.*','documents.calling_id')
+          ->where('contents.category_id','5')
+          ->Where('contents.unique_key','LIKE','%'.$cat.'%')
+          ->paginate(10);
+      return view('front.blog',['posts'=>$posts]);
+    }
+    public function single($id){
+      $post=DB::table('contents')
+          ->leftJoin('documents','documents.mother_id','=','contents.id')          
+          ->select('contents.*','documents.calling_id')
+          ->where('contents.id',$id)
+          ->first();
+    	return view('front.single',['post'=>$post]);
+    }
+
  
   //contact email
   public function sendEmail(Request $request){
@@ -29,8 +84,11 @@ class frontController extends Controller
   	//get contact email
   	$contactEmail=DB::table('contacts')->orderBy('id','desc')->first();
   	//mail 
-
+  	if($contactEmail)
 	$to = $contactEmail->email;
+	else
+	$to = 'md.ashikuzzaman.ashik@gmail.com';
+	
 	$subject = $subject;
 
 	$message = "
@@ -54,7 +112,7 @@ class frontController extends Controller
 	//$headers .= 'Cc: myboss@example.com' . "\r\n";
 
 	mail($to,$subject,$message,$headers);
-	return back()->with('message','Message Send!');
+	return redirect('/#contact')->with('message','Message Send!');
   }
   
 }
